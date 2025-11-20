@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import {
@@ -16,26 +16,24 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { CalendarIcon, Truck, Box, Container } from 'lucide-react'
+import {
+  CalendarIcon,
+  Truck,
+  Box,
+  Container,
+  Search,
+  Loader2,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { QuoteFormData } from '../../types'
+import { useToast } from '@/hooks/use-toast'
 
 interface Step1Props {
   data: QuoteFormData
   updateData: (data: Partial<QuoteFormData>) => void
 }
-
-const CITIES = [
-  'São Paulo, SP',
-  'Rio de Janeiro, RJ',
-  'Belo Horizonte, MG',
-  'Curitiba, PR',
-  'Porto Alegre, RS',
-  'Salvador, BA',
-  'Brasília, DF',
-]
 
 const CLIENTS = [
   'Tech Solutions SA',
@@ -46,11 +44,60 @@ const CLIENTS = [
 ]
 
 export function Step1ShipmentData({ data, updateData }: Step1Props) {
+  const { toast } = useToast()
+  const [loadingCepOrigin, setLoadingCepOrigin] = useState(false)
+  const [loadingCepDest, setLoadingCepDest] = useState(false)
+
+  const fetchAddress = async (cep: string, field: 'origin' | 'destination') => {
+    const cleanCep = cep.replace(/\D/g, '')
+    if (cleanCep.length !== 8) return
+
+    const setLoading =
+      field === 'origin' ? setLoadingCepOrigin : setLoadingCepDest
+    setLoading(true)
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+      const addressData = await response.json()
+
+      if (addressData.erro) {
+        toast({
+          title: 'CEP não encontrado',
+          description: 'Verifique o CEP informado e tente novamente.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      const cityState = `${addressData.localidade}, ${addressData.uf}`
+
+      if (field === 'origin') {
+        updateData({ origin: cityState, originCep: cep })
+      } else {
+        updateData({ destination: cityState, destinationCep: cep })
+      }
+
+      toast({
+        title: 'Endereço localizado',
+        description: `${cityState} definido como ${field === 'origin' ? 'Origem' : 'Destino'}.`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Erro na busca',
+        description: 'Não foi possível buscar o endereço.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Mock ICMS calculation
   useEffect(() => {
     if (data.origin && data.destination) {
       const originState = data.origin.split(', ')[1]
       const destState = data.destination.split(', ')[1]
+      // Simple logic: Intra-state = 18%, Inter-state = 12% (simplified)
       const newIcms = originState === destState ? 18 : 12
       if (newIcms !== data.icms) {
         updateData({ icms: newIcms })
@@ -68,7 +115,7 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
             onValueChange={(val) => updateData({ client: val })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione o cliente" />
+              <SelectValue placeholder="Selecione ou digite o cliente" />
             </SelectTrigger>
             <SelectContent>
               {CLIENTS.map((client) => (
@@ -76,6 +123,7 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
                   {client}
                 </SelectItem>
               ))}
+              <SelectItem value="new">+ Novo Cliente</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -113,47 +161,74 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label>Origem</Label>
-          <Select
+          <Label>Origem (CEP)</Label>
+          <div className="flex gap-2">
+            <Input
+              placeholder="00000-000"
+              value={data.originCep}
+              onChange={(e) => updateData({ originCep: e.target.value })}
+              onBlur={(e) => fetchAddress(e.target.value, 'origin')}
+              maxLength={9}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => fetchAddress(data.originCep, 'origin')}
+              disabled={loadingCepOrigin}
+            >
+              {loadingCepOrigin ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <Input
             value={data.origin}
-            onValueChange={(val) => updateData({ origin: val })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Cidade de origem" />
-            </SelectTrigger>
-            <SelectContent>
-              {CITIES.map((city) => (
-                <SelectItem key={city} value={city}>
-                  {city}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(e) => updateData({ origin: e.target.value })}
+            placeholder="Cidade, UF"
+            className="bg-muted/50"
+          />
         </div>
         <div className="space-y-2">
-          <Label>Destino</Label>
-          <Select
+          <Label>Destino (CEP)</Label>
+          <div className="flex gap-2">
+            <Input
+              placeholder="00000-000"
+              value={data.destinationCep}
+              onChange={(e) => updateData({ destinationCep: e.target.value })}
+              onBlur={(e) => fetchAddress(e.target.value, 'destination')}
+              maxLength={9}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => fetchAddress(data.destinationCep, 'destination')}
+              disabled={loadingCepDest}
+            >
+              {loadingCepDest ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <Input
             value={data.destination}
-            onValueChange={(val) => updateData({ destination: val })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Cidade de destino" />
-            </SelectTrigger>
-            <SelectContent>
-              {CITIES.map((city) => (
-                <SelectItem key={city} value={city}>
-                  {city}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(e) => updateData({ destination: e.target.value })}
+            placeholder="Cidade, UF"
+            className="bg-muted/50"
+          />
         </div>
       </div>
 
       {data.icms > 0 && (
-        <div className="p-3 bg-blue-50 text-blue-700 rounded-md text-sm border border-blue-100">
-          Alíquota ICMS calculada: <strong>{data.icms}%</strong> ({data.origin}{' '}
-          ➔ {data.destination})
+        <div className="p-3 bg-blue-50 text-blue-700 rounded-md text-sm border border-blue-100 flex items-center gap-2">
+          <span className="font-bold">ICMS:</span>
+          <span>
+            Alíquota de {data.icms}% aplicada para rota {data.origin} ➔{' '}
+            {data.destination}
+          </span>
         </div>
       )}
 
@@ -172,7 +247,7 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
             />
             <Label
               htmlFor="fracionada"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
             >
               <Box className="mb-3 h-6 w-6" />
               Fracionada
@@ -186,7 +261,7 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
             />
             <Label
               htmlFor="lotacao"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
             >
               <Truck className="mb-3 h-6 w-6" />
               Lotação
@@ -200,7 +275,7 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
             />
             <Label
               htmlFor="container"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
             >
               <Container className="mb-3 h-6 w-6" />
               Container

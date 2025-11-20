@@ -10,11 +10,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 
 export default function CalculationSettings() {
   return (
     <div className="space-y-6 animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight">
+      <h1 className="text-3xl font-bold tracking-tight text-primary">
         Configurações de Cálculo
       </h1>
 
@@ -43,6 +44,15 @@ export default function CalculationSettings() {
                   <Label>Índice Custo/Receita Ideal (%)</Label>
                   <Input type="number" defaultValue={65} />
                 </div>
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-0.5">
+                  <Label>Bloquear cotações com margem negativa</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Impede o envio de cotações com prejuízo para aprovação
+                  </p>
+                </div>
+                <Switch defaultChecked />
               </div>
               <Button>Salvar Alterações</Button>
             </CardContent>

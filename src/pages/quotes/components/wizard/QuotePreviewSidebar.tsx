@@ -52,11 +52,7 @@ export function QuotePreviewSidebar({ data }: SidebarProps) {
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Custos Extras</span>
             <span>
-              {(
-                data.loadingCost +
-                data.equipmentCost +
-                data.tollCost
-              ).toLocaleString('pt-BR', {
+              {data.operationalCostTotal.toLocaleString('pt-BR', {
                 style: 'currency',
                 currency: 'BRL',
               })}
@@ -65,7 +61,7 @@ export function QuotePreviewSidebar({ data }: SidebarProps) {
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Impostos (Est.)</span>
             <span>
-              {(data.calculatedRevenue * 0.18).toLocaleString('pt-BR', {
+              {data.taxCost.toLocaleString('pt-BR', {
                 style: 'currency',
                 currency: 'BRL',
               })}

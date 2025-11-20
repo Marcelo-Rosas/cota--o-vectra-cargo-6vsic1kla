@@ -11,33 +11,54 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-import { Cell, Pie, PieChart, ResponsiveContainer, Legend } from 'recharts'
+import {
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
+import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 
 interface Step3Props {
   data: QuoteFormData
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']
+const COLORS = ['#1E40AF', '#10B981', '#F59E0B', '#EF4444']
 
 export function Step3ViabilityAnalysis({ data }: Step3Props) {
   const chartData = [
     { name: 'Frete Base', value: data.baseFreight },
-    { name: 'Custos Operacionais', value: data.totalCosts - data.baseFreight },
-    { name: 'Impostos', value: data.calculatedRevenue * 0.18 }, // Mock tax
-    { name: 'Margem', value: data.grossMarginValue },
+    { name: 'Custos Operacionais', value: data.operationalCostTotal },
+    { name: 'Impostos', value: data.taxCost },
+    {
+      name: 'Margem',
+      value: data.grossMarginValue > 0 ? data.grossMarginValue : 0,
+    },
   ].filter((item) => item.value > 0)
+
+  const breakdownData = [
+    { name: 'Frete Caminhão', value: data.baseFreight },
+    { name: 'Frete Valor', value: data.merchandiseValue * 0.003 }, // Mock Ad Valorem
+    { name: 'GRIS', value: data.merchandiseValue * 0.002 }, // Mock GRIS
+    { name: 'Taxas', value: data.loadingCost + data.equipmentCost },
+  ]
 
   const getClassificationColor = (classification: string) => {
     switch (classification) {
       case 'Excelente':
-        return 'text-green-600'
+        return 'text-green-600 bg-green-50 border-green-200'
       case 'Viável':
-        return 'text-yellow-600'
+        return 'text-yellow-600 bg-yellow-50 border-yellow-200'
       case 'Recusar':
-        return 'text-red-600'
+        return 'text-red-600 bg-red-50 border-red-200'
       default:
         return 'text-muted-foreground'
     }
@@ -45,11 +66,11 @@ export function Step3ViabilityAnalysis({ data }: Step3Props) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-primary text-primary-foreground">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Receita Calculada
+            <CardTitle className="text-sm font-medium opacity-90">
+              FRETE TOTAL
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -59,9 +80,7 @@ export function Step3ViabilityAnalysis({ data }: Step3Props) {
                 currency: 'BRL',
               })}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Valor final sugerido
-            </p>
+            <p className="text-xs opacity-80">Preço final sugerido</p>
           </CardContent>
         </Card>
         <Card>
@@ -98,16 +117,29 @@ export function Step3ViabilityAnalysis({ data }: Step3Props) {
             </p>
           </CardContent>
         </Card>
+        <Card
+          className={`border-2 ${getClassificationColor(data.classification)}`}
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Classificação</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data.classification}</div>
+            <p className="text-xs opacity-80">Baseado na margem</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Composição de Custos</CardTitle>
-            <CardDescription>Distribuição dos valores</CardDescription>
+            <CardTitle>Gráfico de Composição de Custos</CardTitle>
+            <CardDescription>
+              Distribuição percentual dos valores
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="h-[250px]">
+            <ChartContainer config={{}} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -115,8 +147,8 @@ export function Step3ViabilityAnalysis({ data }: Step3Props) {
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
+                    outerRadius={90}
+                    paddingAngle={2}
                     dataKey="value"
                   >
                     {chartData.map((entry, index) => (
@@ -137,17 +169,33 @@ export function Step3ViabilityAnalysis({ data }: Step3Props) {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Classificação Automática</CardTitle>
+              <CardTitle>Detalhamento de Receitas</CardTitle>
+              <CardDescription>
+                Breakdown dos componentes do frete
+              </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center py-6">
-              <div
-                className={`text-4xl font-bold mb-2 ${getClassificationColor(data.classification)}`}
-              >
-                {data.classification}
-              </div>
-              <p className="text-center text-muted-foreground">
-                Com base na margem e riscos operacionais.
-              </p>
+            <CardContent>
+              <ChartContainer config={{}} className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={breakdownData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis type="number" hide />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      width={100}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="value"
+                      fill="#1E40AF"
+                      radius={[0, 4, 4, 0]}
+                      barSize={20}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
             </CardContent>
           </Card>
 
@@ -165,7 +213,7 @@ export function Step3ViabilityAnalysis({ data }: Step3Props) {
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Markup Ideal</span>
+                  <span>Markup Ideal (Benchmark)</span>
                   <span className="font-bold text-muted-foreground">35%</span>
                 </div>
                 <Progress value={35} className="h-2 bg-muted" />
@@ -180,8 +228,9 @@ export function Step3ViabilityAnalysis({ data }: Step3Props) {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>ALERTA DE VIABILIDADE</AlertTitle>
           <AlertDescription>
-            A margem bruta calculada é inferior a 10%. Recomenda-se revisar os
-            custos ou ajustar o markup.
+            A margem bruta calculada é inferior a 10%. A operação pode não ser
+            viável financeiramente. Recomenda-se revisar os custos ou ajustar o
+            markup.
           </AlertDescription>
         </Alert>
       )}
@@ -191,7 +240,8 @@ export function Step3ViabilityAnalysis({ data }: Step3Props) {
           <CheckCircle2 className="h-4 w-4 text-green-600" />
           <AlertTitle>Validado</AlertTitle>
           <AlertDescription>
-            A base de cálculo ICMS está consistente com a receita calculada.
+            Base de cálculo ICMS conforme receita. Operação dentro dos
+            parâmetros de segurança.
           </AlertDescription>
         </Alert>
       )}

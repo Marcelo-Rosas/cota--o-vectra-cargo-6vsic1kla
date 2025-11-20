@@ -42,7 +42,7 @@ export default function ProfitabilityReport() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
           Relatório de Rentabilidade
         </h1>
         <div className="flex gap-2">
@@ -73,8 +73,8 @@ export default function ProfitabilityReport() {
           <ChartContainer
             config={{
               receita: { label: 'Receita', color: 'hsl(var(--chart-1))' },
-              custo: { label: 'Custo', color: 'hsl(var(--chart-2))' },
-              lucro: { label: 'Lucro', color: 'hsl(var(--chart-3))' },
+              custo: { label: 'Custo', color: 'hsl(var(--chart-5))' },
+              lucro: { label: 'Lucro', color: 'hsl(var(--chart-2))' },
             }}
             className="h-[400px]"
           >

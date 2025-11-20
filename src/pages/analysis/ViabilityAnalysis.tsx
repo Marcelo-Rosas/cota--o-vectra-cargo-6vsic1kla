@@ -28,6 +28,8 @@ import {
   ResponsiveContainer,
   XAxis,
   YAxis,
+  LineChart,
+  Line,
 } from 'recharts'
 
 const costData = [
@@ -39,20 +41,30 @@ const costData = [
   { name: 'Lucro', value: 2000 },
 ]
 
+const dreData = [
+  { name: 'Receita Bruta', value: 12000 },
+  { name: 'Impostos', value: -2160 },
+  { name: 'Receita Líquida', value: 9840 },
+  { name: 'Custos Variáveis', value: -6800 },
+  { name: 'Margem Contrib.', value: 3040 },
+  { name: 'Custos Fixos', value: -1040 },
+  { name: 'Lucro Líquido', value: 2000 },
+]
+
 const COLORS = [
-  '#0088FE',
-  '#00C49F',
-  '#FFBB28',
-  '#FF8042',
-  '#8884d8',
-  '#82ca9d',
+  '#1E40AF',
+  '#10B981',
+  '#F59E0B',
+  '#EF4444',
+  '#8B5CF6',
+  '#EC4899',
 ]
 
 export default function ViabilityAnalysis() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
           Análise de Viabilidade
         </h1>
         <Select defaultValue="current">
@@ -109,6 +121,39 @@ export default function ViabilityAnalysis() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
+            <CardTitle>DRE Visual</CardTitle>
+            <CardDescription>
+              Demonstrativo de Resultado do Exercício por Operação
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dreData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={120}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="value" fill="#1E40AF" radius={[0, 4, 4, 0]}>
+                    {dreData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.value > 0 ? '#10B981' : '#EF4444'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
             <CardTitle>Composição de Custos</CardTitle>
             <CardDescription>
               Detalhamento dos custos operacionais e margem.
@@ -139,27 +184,6 @@ export default function ViabilityAnalysis() {
                   </Pie>
                   <ChartTooltip content={<ChartTooltipContent />} />
                 </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Análise de Sensibilidade</CardTitle>
-            <CardDescription>
-              Impacto na margem com variação de custos.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{}} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={costData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" width={100} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#8884d8" radius={[0, 4, 4, 0]} />
-                </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>

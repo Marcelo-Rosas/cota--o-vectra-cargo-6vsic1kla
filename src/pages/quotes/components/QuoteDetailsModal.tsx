@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Quote } from '../types'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import {
   Card,
   CardContent,
@@ -47,13 +46,21 @@ export function QuoteDetailsModal({
 }: QuoteDetailsModalProps) {
   if (!quote) return null
 
+  // Fallback values if extended data is missing
+  const baseFreight = quote.baseFreight || quote.value * 0.5
+  const taxCost = quote.taxCost || quote.value * 0.18
+  const operationalCostTotal = quote.operationalCostTotal || quote.value * 0.2
+  const merchandiseValue = quote.merchandiseValue || quote.value * 10
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 gap-0">
-        <DialogHeader className="px-6 py-4 border-b">
+        <DialogHeader className="px-6 py-4 border-b bg-muted/10">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <DialogTitle className="text-xl">Cotação #{quote.id}</DialogTitle>
+              <DialogTitle className="text-xl text-primary">
+                Cotação #{quote.id}
+              </DialogTitle>
               <DialogDescription>
                 Criada em {new Date(quote.date).toLocaleDateString('pt-BR')}
               </DialogDescription>
@@ -75,24 +82,42 @@ export function QuoteDetailsModal({
 
         <div className="flex-1 overflow-hidden">
           <Tabs defaultValue="main" className="h-full flex flex-col">
-            <div className="px-6 pt-2">
-              <TabsList className="w-full justify-start">
-                <TabsTrigger value="main">Dados Principais</TabsTrigger>
-                <TabsTrigger value="calculations">
+            <div className="px-6 pt-2 border-b">
+              <TabsList className="w-full justify-start bg-transparent p-0 h-auto">
+                <TabsTrigger
+                  value="main"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-2"
+                >
+                  Dados Principais
+                </TabsTrigger>
+                <TabsTrigger
+                  value="calculations"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-2"
+                >
                   Cálculos Detalhados
                 </TabsTrigger>
-                <TabsTrigger value="history">Histórico</TabsTrigger>
-                <TabsTrigger value="attachments">Anexos</TabsTrigger>
+                <TabsTrigger
+                  value="history"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-2"
+                >
+                  Histórico
+                </TabsTrigger>
+                <TabsTrigger
+                  value="attachments"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-2"
+                >
+                  Anexos
+                </TabsTrigger>
               </TabsList>
             </div>
 
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 bg-muted/5">
               <div className="p-6">
                 <TabsContent value="main" className="mt-0 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-base flex items-center gap-2">
+                        <CardTitle className="text-base flex items-center gap-2 text-primary">
                           <MapPin className="h-4 w-4" /> Rota
                         </CardTitle>
                       </CardHeader>
@@ -116,7 +141,7 @@ export function QuoteDetailsModal({
 
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-base flex items-center gap-2">
+                        <CardTitle className="text-base flex items-center gap-2 text-primary">
                           <Package className="h-4 w-4" /> Carga
                         </CardTitle>
                       </CardHeader>
@@ -134,8 +159,13 @@ export function QuoteDetailsModal({
                             Volumes:
                           </span>
                           <span className="font-medium">{quote.items}</span>
-                          <span className="text-muted-foreground">Tipo:</span>
-                          <span className="font-medium">Carga Geral</span>
+                          <span className="text-muted-foreground">Valor:</span>
+                          <span className="font-medium">
+                            {merchandiseValue.toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
+                          </span>
                         </div>
                       </CardContent>
                     </Card>
@@ -143,40 +173,47 @@ export function QuoteDetailsModal({
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 text-primary">
                         <DollarSign className="h-4 w-4" /> Valores
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-muted/50 rounded-lg">
+                        <div className="p-4 bg-white border rounded-lg shadow-sm">
                           <span className="text-sm text-muted-foreground block mb-1">
                             Valor do Frete
                           </span>
-                          <span className="text-2xl font-bold">
+                          <span className="text-2xl font-bold text-primary">
                             {quote.value.toLocaleString('pt-BR', {
                               style: 'currency',
                               currency: 'BRL',
                             })}
                           </span>
                         </div>
-                        <div className="p-4 bg-muted/50 rounded-lg">
+                        <div className="p-4 bg-white border rounded-lg shadow-sm">
                           <span className="text-sm text-muted-foreground block mb-1">
                             Margem Estimada
                           </span>
                           <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold">
+                            <span
+                              className={`text-2xl font-bold ${quote.margin < 10 ? 'text-red-600' : 'text-green-600'}`}
+                            >
                               {quote.margin}%
                             </span>
                             <Progress
                               value={quote.margin}
                               className="w-20 h-2"
+                              indicatorClassName={
+                                quote.margin < 10
+                                  ? 'bg-red-500'
+                                  : 'bg-green-500'
+                              }
                             />
                           </div>
                         </div>
-                        <div className="p-4 bg-muted/50 rounded-lg">
+                        <div className="p-4 bg-white border rounded-lg shadow-sm">
                           <span className="text-sm text-muted-foreground block mb-1">
-                            Custo Operacional
+                            Custo Total
                           </span>
                           <span className="text-2xl font-bold">
                             {(
@@ -198,34 +235,61 @@ export function QuoteDetailsModal({
                     <CardHeader>
                       <CardTitle>Memória de Cálculo</CardTitle>
                       <CardDescription>
-                        Detalhamento da composição do frete.
+                        Detalhamento da composição do frete (AV2) e Margem
+                        (BB2).
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm py-2 border-b">
-                          <span>Frete Peso</span>
-                          <span>R$ {(quote.value * 0.6).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm py-2 border-b">
-                          <span>Ad Valorem (0.3%)</span>
-                          <span>R$ {(quote.value * 0.1).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm py-2 border-b">
-                          <span>GRIS (0.2%)</span>
-                          <span>R$ {(quote.value * 0.05).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm py-2 border-b">
-                          <span>Pedágios</span>
-                          <span>R$ {(quote.value * 0.08).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm py-2 border-b">
-                          <span>Impostos (ICMS/ISS)</span>
-                          <span>R$ {(quote.value * 0.17).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between font-bold text-lg pt-4">
-                          <span>Total</span>
+                          <span>Frete Base / Caminhão</span>
                           <span>
+                            {baseFreight.toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm py-2 border-b">
+                          <span>
+                            Custos Operacionais (Carga/Descarga, Pedágio)
+                          </span>
+                          <span>
+                            {operationalCostTotal.toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm py-2 border-b">
+                          <span>Impostos (ICMS, ISS, PIS/COFINS)</span>
+                          <span>
+                            {taxCost.toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm py-2 border-b bg-muted/20 px-2">
+                          <span className="font-medium">
+                            Custo Total da Operação
+                          </span>
+                          <span className="font-medium">
+                            {(
+                              baseFreight +
+                              operationalCostTotal +
+                              taxCost
+                            ).toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between font-bold text-lg pt-4 px-2 bg-primary/5 rounded-md py-2">
+                          <span className="text-primary">
+                            FRETE TOTAL (AV2)
+                          </span>
+                          <span className="text-primary">
                             {quote.value.toLocaleString('pt-BR', {
                               style: 'currency',
                               currency: 'BRL',
@@ -349,7 +413,7 @@ export function QuoteDetailsModal({
               Reprovar
             </Button>
             <Button
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 text-white"
               onClick={() => onAction('approve', quote)}
             >
               <CheckCircle2 className="mr-2 h-4 w-4" />

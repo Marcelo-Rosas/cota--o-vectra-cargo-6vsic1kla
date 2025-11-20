@@ -1,11 +1,5 @@
 import { useState, useMemo } from 'react'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -149,7 +143,6 @@ export default function QuotesList() {
 
   const handleBatchAction = (action: string) => {
     if (action === 'delete') {
-      // In a real app, this would open a confirmation dialog for batch delete
       setQuotes(quotes.filter((q) => !selectedIds.includes(q.id)))
       setSelectedIds([])
       toast({
@@ -224,7 +217,7 @@ export default function QuotesList() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
           Gestão de Cotações
         </h1>
         <p className="text-muted-foreground">

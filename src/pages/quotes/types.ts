@@ -17,6 +17,11 @@ export interface Quote {
   items: number
   weight: number
   description?: string
+  // Extended fields for detailed view
+  baseFreight?: number
+  taxCost?: number
+  operationalCostTotal?: number
+  merchandiseValue?: number
 }
 
 export type SortDirection = 'asc' | 'desc'
@@ -34,10 +39,12 @@ export interface QuoteFilters {
 }
 
 export interface QuoteFormData {
-  // Step 1
+  // Step 1 - Dados do Embarque
   client: string
   origin: string
+  originCep: string
   destination: string
+  destinationCep: string
   icms: number
   cargoType: 'lotacao' | 'fracionada' | 'container'
   dimensions: string
@@ -46,30 +53,38 @@ export interface QuoteFormData {
   items: number
   merchandiseValue: number
 
-  // Step 2
+  // Step 2 - Parâmetros de Cálculo
   useNtcTable: boolean
   methodology: string
   applyTaxesOnCosts: boolean
   applyMarkup: boolean
   markupPercentage: number
-  baseFreight: number
-  loadingCost: number
-  equipmentCost: number
-  tollCost: number
-  negotiatedFreight: number
+
+  // Operational Costs
+  baseFreight: number // Frete Caminhão / Base
+  loadingCost: number // Carga/Descarga
+  equipmentCost: number // Aluguel Equipamentos
+  tollCost: number // Pedágio
+  negotiatedFreight: number // Frete Negociado (AO2)
 
   // Calculated Results
-  calculatedRevenue: number
+  calculatedRevenue: number // AV2
   totalCosts: number
-  grossMargin: number
-  grossMarginValue: number
+  grossMargin: number // %
+  grossMarginValue: number // BB2
   classification: 'Excelente' | 'Viável' | 'Recusar'
+
+  // Breakdown
+  taxCost: number
+  operationalCostTotal: number
 }
 
 export const INITIAL_QUOTE_DATA: QuoteFormData = {
   client: '',
   origin: '',
+  originCep: '',
   destination: '',
+  destinationCep: '',
   icms: 0,
   cargoType: 'fracionada',
   dimensions: '',
@@ -92,4 +107,6 @@ export const INITIAL_QUOTE_DATA: QuoteFormData = {
   grossMargin: 0,
   grossMarginValue: 0,
   classification: 'Viável',
+  taxCost: 0,
+  operationalCostTotal: 0,
 }

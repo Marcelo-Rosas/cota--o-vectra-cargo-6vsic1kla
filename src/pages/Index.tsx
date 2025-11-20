@@ -8,11 +8,10 @@ import {
 import {
   Activity,
   ArrowUpRight,
-  Calendar as CalendarIcon,
-  CreditCard,
   DollarSign,
   TrendingUp,
   Users,
+  Plus,
 } from 'lucide-react'
 import {
   ChartContainer,
@@ -32,6 +31,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const data = [
   { name: 'Jan', total: 1200 },
@@ -57,12 +57,16 @@ export default function Index() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
           Dashboard Principal
         </h1>
         <div className="flex items-center gap-2">
           <Button variant="outline">Exportar Relatório</Button>
-          <Button>Nova Cotação</Button>
+          <Button asChild className="bg-primary hover:bg-primary/90">
+            <Link to="/quotes/new">
+              <Plus className="mr-2 h-4 w-4" /> Nova Cotação
+            </Link>
+          </Button>
         </div>
       </div>
 

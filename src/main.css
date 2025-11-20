@@ -1,7 +1,7 @@
 /* Global styles - Theme, font, utilities, animations and global components */
 
 /* CHANGE THE FONT BELOW TO WHATEVER YOU WANT */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Roboto:wght@100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,62 +9,60 @@
 
 @layer base {
   :root {
-    /* Change the colors to match the design system */
+    /* Vectra Cargo Identity */
+    /* Primary Blue: #1E40AF -> 226 71% 40% */
+    /* Secondary Dark Gray: #374151 -> 215 19% 27% */
+    /* Success Green: #10B981 -> 158 84% 39% */
+    /* Warning Yellow: #F59E0B -> 38 92% 50% */
+    /* Error Red: #EF4444 -> 0 84% 60% */
+
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 215 19% 27%; /* Secondary Dark Gray */
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 19% 27%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 19% 27%;
 
-    --primary: 222.2 84% 4.9%;
+    --primary: 226 71% 40%; /* Primary Blue */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 98%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 98%;
+    --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 98%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%; /* Error Red */
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 226 71% 40%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 222.2 84% 4.9%;
-
-    --sidebar-primary: 222.2 84% 4.9%;
-
+    --sidebar-foreground: 215 19% 27%;
+    --sidebar-primary: 226 71% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-
-    --sidebar-accent: 210 40% 98%;
-
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
-
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 215 19% 27%;
     --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 226 71% 40%;
 
-    --sidebar-ring: 222.2 84% 4.9%;
-
-    --chart-1: 34 100% 44%;
-    --chart-2: 189 100% 38%;
-    --chart-3: 209 100% 32%;
-    --chart-4: 42 100% 50%;
-    --chart-5: 33 100% 50%;
+    --chart-1: 226 71% 40%; /* Primary Blue */
+    --chart-2: 158 84% 39%; /* Success Green */
+    --chart-3: 38 92% 50%; /* Warning Yellow */
+    --chart-4: 0 84% 60%; /* Error Red */
+    --chart-5: 215 19% 27%; /* Secondary Dark Gray */
   }
 
   .dark {
-    /* Change the colors to match the design system consistent with the dark mode */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
@@ -77,35 +75,36 @@
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 84% 4.9%;
 
-    --secondary: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 222.2 84% 4.9%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 222.2 84% 4.9%;
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 222.2 84% 4.9%;
-    --input: 222.2 84% 4.9%;
-    --ring: 214.3 31.8% 91.4%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 222.2 84% 4.9%;
+    --sidebar-primary: 226 71% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222.2 84% 4.9%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222.2 84% 4.9%;
-    --sidebar-ring: 222.2 84% 4.9%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 212.7 26.8% 83.9%;
 
-    --chart-1: 270 100% 44%;
-    --chart-2: 164 100% 38%;
-    --chart-3: 43 100% 32%;
-    --chart-4: 340 100% 50%;
-    --chart-5: 10 100% 50%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 
   /* NEVER REMOVE THIS */
