@@ -47,6 +47,10 @@ export function AppHeader() {
         return 'Gestão de Usuários'
       case 'territorial':
         return 'Tabelas de Referência'
+      case 'tools':
+        return 'Ferramentas'
+      case 'reverse-cubage':
+        return 'Calculadora de Cubagem'
       default:
         return path.charAt(0).toUpperCase() + path.slice(1)
     }

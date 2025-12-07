@@ -30,6 +30,7 @@ import {
   LogOut,
   User,
   ChevronRight,
+  PackageOpen,
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -66,9 +67,12 @@ export function AppSidebar() {
       ],
     },
     {
-      title: 'Precificação',
-      url: '/pricing', // Placeholder route, maybe redirects to settings or new quote
-      icon: Calculator,
+      title: 'Ferramentas',
+      icon: PackageOpen,
+      items: [
+        { title: 'Cubagem Reversa', url: '/tools/reverse-cubage' },
+        { title: 'Precificação', url: '/pricing' },
+      ],
     },
     {
       title: 'Viabilidade',

@@ -16,6 +16,7 @@ import TaxModule from './pages/tax/TaxModule'
 import AuditLog from './pages/audit/AuditLog'
 import UserManagement from './pages/users/UserManagement'
 import ReferenceTables from './pages/territorial/ReferenceTables'
+import ReverseCubage from './pages/tools/ReverseCubage'
 
 const App = () => (
   <BrowserRouter
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/audit" element={<AuditLog />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/territorial" element={<ReferenceTables />} />
+          <Route path="/tools/reverse-cubage" element={<ReverseCubage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
