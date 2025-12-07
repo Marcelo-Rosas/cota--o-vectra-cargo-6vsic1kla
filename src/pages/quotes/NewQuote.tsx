@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -23,9 +23,9 @@ export default function NewQuote() {
   const [data, setData] = useState<QuoteFormData>(INITIAL_QUOTE_DATA)
   const { toast } = useToast()
 
-  const updateData = (newData: Partial<QuoteFormData>) => {
+  const updateData = useCallback((newData: Partial<QuoteFormData>) => {
     setData((prev) => ({ ...prev, ...newData }))
-  }
+  }, [])
 
   // Methodology Decision Tree & Freight Calculation Engine
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function NewQuote() {
       const gris = data.merchandiseValue * 0.002 // 0.2%
       const deliveryFee = 60 // Fixed tax
 
-      const totalFracionado = baseTariffFrac + adValorem + gris + deliveryFee
+      let totalFracionado = baseTariffFrac + adValorem + gris + deliveryFee
 
       // 4. Calculate Lotacao Cost
       // Vehicle Type Selection based on weight/volume
@@ -170,6 +170,7 @@ export default function NewQuote() {
     data.negotiatedFreight,
     data.methodology,
     data.useNtcTable,
+    data.baseFreight,
   ])
 
   const nextStep = () => {

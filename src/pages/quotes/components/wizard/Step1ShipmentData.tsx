@@ -112,7 +112,7 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
         updateData({ icms: newIcms })
       }
     }
-  }, [data.origin, data.destination])
+  }, [data.origin, data.destination, data.distance, data.icms, updateData])
 
   return (
     <div className="space-y-6 animate-fade-in">
