@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -26,16 +26,7 @@ import {
 } from '@/components/ui/table'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import {
-  Trash2,
-  Plus,
-  Box,
-  Calculator,
-  RotateCcw,
-  ArrowRight,
-  Info,
-} from 'lucide-react'
+import { Trash2, Plus, Box, Calculator, RotateCcw, Info } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -104,7 +95,7 @@ export default function ReverseCubage() {
     setItems((prev) => [
       ...prev,
       {
-        id: Math.random().toString(36).substr(2, 9),
+        id: Math.random().toString(36).slice(2, 11),
         volume: '',
         method: 'equivalent',
         ratioType: 'fitness', // Default for methods 2 & 3
@@ -121,7 +112,7 @@ export default function ReverseCubage() {
       // If removing last item, just reset it
       setItems([
         {
-          id: Math.random().toString(36).substr(2, 9),
+          id: Math.random().toString(36).slice(2, 11),
           volume: '',
           method: 'equivalent',
           ratioType: 'fitness',
@@ -149,19 +140,24 @@ export default function ReverseCubage() {
       A = 0
 
     switch (item.method) {
-      case 'equivalent':
+      case 'equivalent': {
         // C = L = A = ³√Volume
         const dimension = Math.cbrt(volume)
         C = L = A = dimension
         break
+      }
 
       case 'typical':
-      case 'custom':
-        const ratioSource =
-          item.method === 'typical' ? TYPICAL_RATIOS : CUSTOM_RATIOS
-        const selectedRatio =
-          // @ts-expect-error - Dynamic access safe due to types
-          ratioSource[item.ratioType as keyof typeof ratioSource]?.ratio
+      case 'custom': {
+        let selectedRatio: readonly [number, number, number] | undefined
+
+        if (item.method === 'typical') {
+          const key = item.ratioType as keyof typeof TYPICAL_RATIOS
+          selectedRatio = TYPICAL_RATIOS[key]?.ratio
+        } else {
+          const key = item.ratioType as keyof typeof CUSTOM_RATIOS
+          selectedRatio = CUSTOM_RATIOS[key]?.ratio
+        }
 
         if (selectedRatio) {
           const [rC, rL, rA] = selectedRatio
@@ -172,8 +168,9 @@ export default function ReverseCubage() {
           A = rA * k
         }
         break
+      }
 
-      case 'fixed':
+      case 'fixed': {
         if (
           !item.fixedDimensionValue ||
           Number(item.fixedDimensionValue) <= 0
@@ -193,6 +190,7 @@ export default function ReverseCubage() {
         C = ratio * L
         A = fixedH
         break
+      }
     }
 
     return {
@@ -576,7 +574,7 @@ export default function ReverseCubage() {
                 setItems((prev) => [
                   ...prev,
                   {
-                    id: Math.random().toString(36).substr(2, 9),
+                    id: Math.random().toString(36).slice(2, 11),
                     volume: 5.985,
                     method: 'typical',
                     ratioType: 'fitness',
