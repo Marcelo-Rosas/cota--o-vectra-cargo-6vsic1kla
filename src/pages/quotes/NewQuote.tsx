@@ -27,61 +27,93 @@ export default function NewQuote() {
     setData((prev) => ({ ...prev, ...newData }))
   }
 
-  // Calculation Logic based on User Story
+  // Methodology Decision Tree & Freight Calculation Engine
   useEffect(() => {
-    const calculateQuote = () => {
-      const {
-        baseFreight,
-        loadingCost,
-        equipmentCost,
-        tollCost,
-        applyTaxesOnCosts,
-        applyMarkup,
-        markupPercentage,
-        negotiatedFreight,
-        merchandiseValue,
-      } = data
+    const runAnalysisEngine = () => {
+      // 1. Calculate Physical Properties
+      const cubage = (data.dimLength * data.dimWidth * data.dimHeight) / 1000000 // cm³ to m³
+      const cubedWeight = cubage * 300 // Standard factor 300kg/m³
+      const weightChargeable = Math.max(data.weight, cubedWeight)
 
-      // Operational Costs (Sum of costs)
-      const operationalCosts = loadingCost + equipmentCost + tollCost
+      // 2. Determine Recommended Methodology
+      let recommendation: 'lotacao' | 'fracionada' = 'fracionada'
 
-      let revenue = 0 // AV2
+      // Decision Rules
+      if (data.urgency === 'expressa') recommendation = 'lotacao'
+      else if (weightChargeable > 3000)
+        recommendation = 'lotacao' // Weight threshold
+      else if (cubage > 15) recommendation = 'lotacao' // Volume threshold
 
-      // Logic for AV2 (Frete_R$)
-      if (applyMarkup) {
-        // If Markup = YES
-        // AV2 = IFERROR(AO2,0) + IF(T2="Sim",SUM(Costs),0) -> Then apply markup
-        // Here AO2 is Base Freight (Frete Caminhão)
-        let costBase = baseFreight
+      // 3. Calculate Fracionado Cost
+      // Base Tariff: (Weight/100) * (Distance/100) * Factor + Fixed
+      // This is a mock formula to simulate NTC table complexity
+      const baseTariffFrac =
+        (weightChargeable / 100) * (Math.max(data.distance, 50) / 100) * 45 + 80
+      const adValorem = data.merchandiseValue * 0.003 // 0.3%
+      const gris = data.merchandiseValue * 0.002 // 0.2%
+      const deliveryFee = 60 // Fixed tax
 
-        if (applyTaxesOnCosts) {
-          costBase += operationalCosts
-        }
+      const totalFracionado = baseTariffFrac + adValorem + gris + deliveryFee
 
-        // Apply Markup
-        revenue = costBase * (1 + markupPercentage / 100)
-      } else {
-        // If Markup = NO
-        // AV2 = IFERROR(AO2,0) -> Negotiated Freight
-        revenue = negotiatedFreight
+      // 4. Calculate Lotacao Cost
+      // Vehicle Type Selection based on weight/volume
+      let vehicleRate = 3.5 // Small Truck
+      if (data.weight > 3000 || cubage > 15) vehicleRate = 4.8 // Medium
+      if (data.weight > 8000 || cubage > 30) vehicleRate = 6.5 // Large
+      if (data.weight > 14000 || cubage > 50) vehicleRate = 8.5 // Carreta
+
+      // ANTT Floor Validation (Mock check)
+      const anttFloorRate = 3.2
+      vehicleRate = Math.max(vehicleRate, anttFloorRate)
+
+      let totalLotacao = data.distance * vehicleRate
+      // Return Trip Factor
+      if (data.distance > 400)
+        totalLotacao *= 1.4 // Partial return coverage
+      else totalLotacao *= 1.8 // Full return coverage for short trips
+
+      // Urgency Surcharge
+      if (data.urgency === 'expressa') {
+        totalFracionado *= 1.5
+        totalLotacao *= 1.2
       }
 
-      // Tax Calculation (Mock logic: ICMS + PIS/COFINS + GRIS + Ad Valorem)
-      // Assuming ~18% total tax burden on revenue + Ad Valorem on Merchandise Value
-      const taxRate = 0.1625 // 16.25% average tax
-      const adValoremRate = 0.003 // 0.3%
+      // 5. Estimate Delivery Times (Mock)
+      const speedFrac = 400 // km/day
+      const speedLot = 700 // km/day
+      const timeFrac = Math.ceil(data.distance / speedFrac) + 2 // +2 days for consolidation
+      const timeLot = Math.ceil(data.distance / speedLot)
 
+      // Update State with Analysis Results
+      // Note: We avoid setting state if values haven't changed significantly to prevent loops
+      // But here we rely on React's state batching and the dependency array
+
+      // Determine base freight based on current selection
+      let selectedBaseFreight = data.baseFreight
+      if (data.useNtcTable) {
+        selectedBaseFreight =
+          data.methodology === 'lotacao' ? totalLotacao : totalFracionado
+      }
+
+      // --- Financial Viability Calculation ---
+      const operationalCosts =
+        data.loadingCost + data.equipmentCost + data.tollCost
+
+      let revenue = 0
+      if (data.applyMarkup) {
+        let costBase = selectedBaseFreight
+        if (data.applyTaxesOnCosts) {
+          costBase += operationalCosts
+        }
+        revenue = costBase * (1 + data.markupPercentage / 100)
+      } else {
+        revenue = data.negotiatedFreight
+      }
+
+      const taxRate = 0.1625
       const taxesOnRevenue = revenue * taxRate
-      const adValoremTax = merchandiseValue * adValoremRate
-      const totalTaxes = taxesOnRevenue + adValoremTax
 
-      // Logic for BB2 (Margem Bruta)
-      // BB2 = AV2 - (Operational Costs + Taxes + Base Freight)
-      // Ensure costs are subtracted only once
-
-      const totalDirectCosts = baseFreight + operationalCosts
-      const totalCosts = totalDirectCosts + totalTaxes
-
+      const totalCosts = selectedBaseFreight + operationalCosts + taxesOnRevenue
       const marginValue = revenue - totalCosts
       const marginPercent = revenue > 0 ? (marginValue / revenue) * 100 : 0
 
@@ -89,21 +121,46 @@ export default function NewQuote() {
       if (marginPercent >= 25) classification = 'Excelente'
       if (marginPercent < 10) classification = 'Recusar'
 
-      setData((prev) => ({
-        ...prev,
-        calculatedRevenue: revenue,
-        totalCosts: totalCosts,
-        grossMargin: marginPercent,
-        grossMarginValue: marginValue,
-        classification: classification,
-        taxCost: totalTaxes,
-        operationalCostTotal: operationalCosts,
-      }))
+      setData((prev) => {
+        // Only update if derived values differ to avoid render loops (simple check)
+        if (
+          prev.cubage === cubage &&
+          prev.cubedWeight === cubedWeight &&
+          prev.costFracionado === totalFracionado &&
+          prev.calculatedRevenue === revenue
+        )
+          return prev
+
+        return {
+          ...prev,
+          cubage,
+          cubedWeight,
+          recommendedMethodology: recommendation,
+          costFracionado: totalFracionado,
+          costLotacao: totalLotacao,
+          timeFracionado: timeFrac,
+          timeLotacao: timeLot,
+          baseFreight: selectedBaseFreight,
+          calculatedRevenue: revenue,
+          totalCosts,
+          grossMargin: marginPercent,
+          grossMarginValue: marginValue,
+          classification,
+          taxCost: taxesOnRevenue,
+          operationalCostTotal: operationalCosts,
+        }
+      })
     }
 
-    calculateQuote()
+    runAnalysisEngine()
   }, [
-    data.baseFreight,
+    data.dimLength,
+    data.dimWidth,
+    data.dimHeight,
+    data.weight,
+    data.distance,
+    data.merchandiseValue,
+    data.urgency,
     data.loadingCost,
     data.equipmentCost,
     data.tollCost,
@@ -111,7 +168,8 @@ export default function NewQuote() {
     data.applyMarkup,
     data.markupPercentage,
     data.negotiatedFreight,
-    data.merchandiseValue,
+    data.methodology,
+    data.useNtcTable,
   ])
 
   const nextStep = () => {
@@ -120,6 +178,14 @@ export default function NewQuote() {
         toast({
           title: 'Campos obrigatórios',
           description: 'Preencha Cliente, Origem e Destino para continuar.',
+          variant: 'destructive',
+        })
+        return
+      }
+      if (data.distance <= 0) {
+        toast({
+          title: 'Distância necessária',
+          description: 'Informe a distância ou calcule via CEP.',
           variant: 'destructive',
         })
         return

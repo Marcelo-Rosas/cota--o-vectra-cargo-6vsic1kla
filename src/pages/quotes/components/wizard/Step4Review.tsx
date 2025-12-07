@@ -26,10 +26,16 @@ export function Step4Review({ data }: Step4Props) {
               <span className="font-medium">{data.origin}</span>
               <span className="text-muted-foreground">Destino:</span>
               <span className="font-medium">{data.destination}</span>
-              <span className="text-muted-foreground">Carga:</span>
-              <span className="font-medium capitalize">{data.cargoType}</span>
-              <span className="text-muted-foreground">Peso:</span>
+              <span className="text-muted-foreground">Modalidade:</span>
+              <span className="font-medium capitalize">{data.methodology}</span>
+              <span className="text-muted-foreground">Distância:</span>
+              <span className="font-medium">{data.distance} km</span>
+              <span className="text-muted-foreground">Peso Real:</span>
               <span className="font-medium">{data.weight} kg</span>
+              <span className="text-muted-foreground">Peso Cubado:</span>
+              <span className="font-medium">
+                {data.cubedWeight.toFixed(0)} kg
+              </span>
               <span className="text-muted-foreground">Valor Mercadoria:</span>
               <span className="font-medium">
                 {data.merchandiseValue.toLocaleString('pt-BR', {

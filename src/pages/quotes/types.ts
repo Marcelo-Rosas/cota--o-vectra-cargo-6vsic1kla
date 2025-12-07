@@ -38,6 +38,9 @@ export interface QuoteFilters {
   client: string
 }
 
+export type UrgencyLevel = 'normal' | 'alta' | 'expressa'
+export type MethodologyType = 'fracionada' | 'lotacao' | 'container' | 'antt'
+
 export interface QuoteFormData {
   // Step 1 - Dados do Embarque
   client: string
@@ -45,23 +48,42 @@ export interface QuoteFormData {
   originCep: string
   destination: string
   destinationCep: string
+  distance: number
   icms: number
-  cargoType: 'lotacao' | 'fracionada' | 'container'
-  dimensions: string
+
+  // Cargo Details
+  cargoType: 'lotacao' | 'fracionada' | 'container' // Initial intent
+
+  // Dimensions & Weight
+  dimLength: number
+  dimWidth: number
+  dimHeight: number
+  cubage: number // m3
+  cubedWeight: number // kg
+
   weight: number
   collectionDate: Date | undefined
   items: number
   merchandiseValue: number
+  urgency: UrgencyLevel
 
   // Step 2 - Parâmetros de Cálculo
   useNtcTable: boolean
-  methodology: string
+  methodology: MethodologyType // Selected for calculation
+  recommendedMethodology: MethodologyType
+
+  // Comparison Data (Automated Calculation Results)
+  costFracionado: number
+  costLotacao: number
+  timeFracionado: number // days
+  timeLotacao: number // days
+
   applyTaxesOnCosts: boolean
   applyMarkup: boolean
   markupPercentage: number
 
   // Operational Costs
-  baseFreight: number // Frete Caminhão / Base
+  baseFreight: number // Frete Caminhão / Base (Selected Cost)
   loadingCost: number // Carga/Descarga
   equipmentCost: number // Aluguel Equipamentos
   tollCost: number // Pedágio
@@ -85,15 +107,26 @@ export const INITIAL_QUOTE_DATA: QuoteFormData = {
   originCep: '',
   destination: '',
   destinationCep: '',
+  distance: 0,
   icms: 0,
   cargoType: 'fracionada',
-  dimensions: '',
+  dimLength: 0,
+  dimWidth: 0,
+  dimHeight: 0,
+  cubage: 0,
+  cubedWeight: 0,
   weight: 0,
   collectionDate: undefined,
   items: 0,
   merchandiseValue: 0,
+  urgency: 'normal',
   useNtcTable: true,
   methodology: 'fracionada',
+  recommendedMethodology: 'fracionada',
+  costFracionado: 0,
+  costLotacao: 0,
+  timeFracionado: 0,
+  timeLotacao: 0,
   applyTaxesOnCosts: true,
   applyMarkup: true,
   markupPercentage: 30,

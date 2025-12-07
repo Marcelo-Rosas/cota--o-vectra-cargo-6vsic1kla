@@ -8,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Calendar } from '@/components/ui/calendar'
 import {
   Popover,
@@ -18,17 +17,18 @@ import {
 import { Button } from '@/components/ui/button'
 import {
   CalendarIcon,
-  Truck,
-  Box,
-  Container,
   Search,
   Loader2,
+  Box,
+  MapPin,
+  AlertCircle,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { QuoteFormData } from '../../types'
 import { useToast } from '@/hooks/use-toast'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 interface Step1Props {
   data: QuoteFormData
@@ -92,18 +92,27 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
     }
   }
 
-  // Mock ICMS calculation
+  // Mock ICMS and Distance calculation
   useEffect(() => {
     if (data.origin && data.destination) {
       const originState = data.origin.split(', ')[1]
       const destState = data.destination.split(', ')[1]
-      // Simple logic: Intra-state = 18%, Inter-state = 12% (simplified)
+
       const newIcms = originState === destState ? 18 : 12
+
+      // Mock distance generation based on states if not set
+      let mockDistance = data.distance
+      if (mockDistance === 0) {
+        if (originState === destState) mockDistance = 150
+        else mockDistance = 850
+        updateData({ distance: mockDistance })
+      }
+
       if (newIcms !== data.icms) {
         updateData({ icms: newIcms })
       }
     }
-  }, [data.origin, data.destination, data.icms, updateData])
+  }, [data.origin, data.destination])
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -222,71 +231,110 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
         </div>
       </div>
 
-      {data.icms > 0 && (
-        <div className="p-3 bg-blue-50 text-blue-700 rounded-md text-sm border border-blue-100 flex items-center gap-2">
-          <span className="font-bold">ICMS:</span>
-          <span>
-            Alíquota de {data.icms}% aplicada para rota {data.origin} ➔{' '}
-            {data.destination}
-          </span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-2">
+          <Label>Distância (km)</Label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="number"
+              className="pl-9"
+              placeholder="0"
+              value={data.distance || ''}
+              onChange={(e) => updateData({ distance: Number(e.target.value) })}
+            />
+          </div>
         </div>
+        <div className="space-y-2 md:col-span-2">
+          <Label>Urgência do Embarque</Label>
+          <Select
+            value={data.urgency}
+            onValueChange={(val: any) => updateData({ urgency: val })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="normal">Normal - Menor Custo</SelectItem>
+              <SelectItem value="alta">Alta - Prioridade</SelectItem>
+              <SelectItem value="expressa">
+                Expressa - Veículo Dedicado
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {data.icms > 0 && (
+        <Alert className="bg-blue-50 border-blue-100 text-blue-800">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertTitle>Informação Fiscal</AlertTitle>
+          <AlertDescription>
+            Alíquota de ICMS calculada automaticamente:{' '}
+            <strong>{data.icms}%</strong> para o trecho.
+          </AlertDescription>
+        </Alert>
       )}
 
-      <div className="space-y-3">
-        <Label>Tipo de Carga</Label>
-        <RadioGroup
-          value={data.cargoType}
-          onValueChange={(val: any) => updateData({ cargoType: val })}
-          className="grid grid-cols-3 gap-4"
-        >
-          <div>
-            <RadioGroupItem
-              value="fracionada"
-              id="fracionada"
-              className="peer sr-only"
+      <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
+        <div className="flex items-center gap-2 mb-2">
+          <Box className="h-5 w-5 text-primary" />
+          <h3 className="font-medium">Dimensões e Cubagem</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label>Comprimento (cm)</Label>
+            <Input
+              type="number"
+              value={data.dimLength || ''}
+              onChange={(e) =>
+                updateData({ dimLength: Number(e.target.value) })
+              }
+              placeholder="0"
             />
-            <Label
-              htmlFor="fracionada"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
-            >
-              <Box className="mb-3 h-6 w-6" />
-              Fracionada
-            </Label>
           </div>
-          <div>
-            <RadioGroupItem
-              value="lotacao"
-              id="lotacao"
-              className="peer sr-only"
+          <div className="space-y-2">
+            <Label>Largura (cm)</Label>
+            <Input
+              type="number"
+              value={data.dimWidth || ''}
+              onChange={(e) => updateData({ dimWidth: Number(e.target.value) })}
+              placeholder="0"
             />
-            <Label
-              htmlFor="lotacao"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
-            >
-              <Truck className="mb-3 h-6 w-6" />
-              Lotação
-            </Label>
           </div>
-          <div>
-            <RadioGroupItem
-              value="container"
-              id="container"
-              className="peer sr-only"
+          <div className="space-y-2">
+            <Label>Altura (cm)</Label>
+            <Input
+              type="number"
+              value={data.dimHeight || ''}
+              onChange={(e) =>
+                updateData({ dimHeight: Number(e.target.value) })
+              }
+              placeholder="0"
             />
-            <Label
-              htmlFor="container"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
-            >
-              <Container className="mb-3 h-6 w-6" />
-              Container
-            </Label>
           </div>
-        </RadioGroup>
+        </div>
+        {data.cubage > 0 && (
+          <div className="grid grid-cols-2 gap-4 pt-2 text-sm">
+            <div className="bg-background p-2 rounded border">
+              <span className="text-muted-foreground">Cubagem:</span>
+              <span className="font-bold ml-2">
+                {data.cubage.toFixed(3)} m³
+              </span>
+            </div>
+            <div className="bg-background p-2 rounded border">
+              <span className="text-muted-foreground">Peso Cubado:</span>
+              <span className="font-bold ml-2">
+                {data.cubedWeight.toFixed(1)} kg
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-2">
-          <Label>Peso Bruto (kg)</Label>
+          <Label>Peso Real (kg)</Label>
           <Input
             type="number"
             placeholder="0"
@@ -306,7 +354,7 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
           />
         </div>
         <div className="space-y-2">
-          <Label>Volumes</Label>
+          <Label>Volumes (Qtd)</Label>
           <Input
             type="number"
             placeholder="0"
@@ -314,15 +362,6 @@ export function Step1ShipmentData({ data, updateData }: Step1Props) {
             onChange={(e) => updateData({ items: Number(e.target.value) })}
           />
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Dimensões (C x L x A em cm)</Label>
-        <Input
-          placeholder="Ex: 100 x 50 x 50"
-          value={data.dimensions}
-          onChange={(e) => updateData({ dimensions: e.target.value })}
-        />
       </div>
     </div>
   )

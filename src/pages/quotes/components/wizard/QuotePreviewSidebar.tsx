@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import { QuoteFormData } from '../../types'
-import { FileText } from 'lucide-react'
+import { FileText, Truck, Clock } from 'lucide-react'
 
 interface SidebarProps {
   data: QuoteFormData
@@ -21,7 +21,11 @@ export function QuotePreviewSidebar({ data }: SidebarProps) {
     <Card className="sticky top-20 border-primary/20 shadow-lg">
       <CardHeader className="bg-muted/50">
         <CardTitle>Preview Rápido</CardTitle>
-        <CardDescription>Atualizado em tempo real</CardDescription>
+        <CardDescription>
+          {data.methodology === 'lotacao'
+            ? 'Lotação / Dedicado'
+            : 'Carga Fracionada'}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
         <div className="space-y-2">
@@ -39,7 +43,24 @@ export function QuotePreviewSidebar({ data }: SidebarProps) {
                 : '-'}
             </span>
           </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Distância</span>
+            <span className="font-medium">{data.distance} km</span>
+          </div>
+
           <Separator className="my-2" />
+
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Peso Taxável</span>
+            <span>{Math.max(data.weight, data.cubedWeight).toFixed(0)} kg</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Urgência</span>
+            <span className="capitalize">{data.urgency}</span>
+          </div>
+
+          <Separator className="my-2" />
+
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Frete Base</span>
             <span>
@@ -76,6 +97,18 @@ export function QuotePreviewSidebar({ data }: SidebarProps) {
                 currency: 'BRL',
               })}
             </span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="font-medium text-sm flex items-center gap-2">
+            <Clock className="h-3 w-3" /> Prazo Estimado
+          </h4>
+          <div className="text-sm">
+            {data.methodology === 'lotacao'
+              ? data.timeLotacao
+              : data.timeFracionado}{' '}
+            dias
           </div>
         </div>
 
